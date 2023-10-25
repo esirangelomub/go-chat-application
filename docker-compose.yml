@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+#  web:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "5000:8080" # Changed from 8080 to 5000 for the host machine
+#    depends_on:
+#      - db
+#      - rabbitmq
+#    environment:
+#      DATABASE_URL: postgres://postgres:password@db:5493/chatapp?sslmode=disable
+#      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5693/
+
+  db:
+    image: 'postgres:14'
+    container_name: chat.db
+    hostname: chat.db
+    ports:
+      - "5493:5432" # Changed from 5432 to 5493 for the host machine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: chatapp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "chatapp", "-U", "postgres" ]
+      retries: 3
+      timeout: 5s
+
+  rabbitmq:
+    image: rabbitmq:3.8.16-management
+    container_name: chat.rabbitmq
+    hostname: chat.rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "15692:15692"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_VHOST=/
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
