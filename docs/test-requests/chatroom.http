@@ -1,0 +1,34 @@
+POST localhost:8000/chats/rooms HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTg0MzExNTcsInN1YiI6IjFiYzhjN2I1LTQwNDctNDllOC05YWM2LWYzNmE0OTUxMGYyZCJ9.UlT4XaDSl-6GQz7ARXiQt0QMGowouy9J379853Jy26g
+
+{
+  "name": "Chat Room with Error",
+  "description": "Chat Room with error Description"
+}
+
+###
+
+GET localhost:8000/chats/rooms HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTg0MzExNTcsInN1YiI6IjFiYzhjN2I1LTQwNDctNDllOC05YWM2LWYzNmE0OTUxMGYyZCJ9.UlT4XaDSl-6GQz7ARXiQt0QMGowouy9J379853Jy26g
+
+###
+
+GET localhost:8000/chats/rooms/66a3403d-f621-44f5-baed-781d91caefd1 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTg0MzExNTcsInN1YiI6IjFiYzhjN2I1LTQwNDctNDllOC05YWM2LWYzNmE0OTUxMGYyZCJ9.UlT4XaDSl-6GQz7ARXiQt0QMGowouy9J379853Jy26g
+
+###
+
+PUT localhost:8000/chats/rooms/66a3403d-f621-44f5-baed-781d91caefd1 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTg0MzExNTcsInN1YiI6IjFiYzhjN2I1LTQwNDctNDllOC05YWM2LWYzNmE0OTUxMGYyZCJ9.UlT4XaDSl-6GQz7ARXiQt0QMGowouy9J379853Jy26g
+
+{
+  "name": "Chat Room with Errors - Edited",
+  "description": "Chat Room with errors Description - Edited"
+}
+
+###
+
+DELETE localhost:8000/chats/rooms/66a3403d-f621-44f5-baed-781d91caefd1 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTg0MzExNTcsInN1YiI6IjFiYzhjN2I1LTQwNDctNDllOC05YWM2LWYzNmE0OTUxMGYyZCJ9.UlT4XaDSl-6GQz7ARXiQt0QMGowouy9J379853Jy26g

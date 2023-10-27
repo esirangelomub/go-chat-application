@@ -1,17 +1,59 @@
 package main
 
 import (
-	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"github.com/esirangelomub/go-chat-application/configs"
+	dbutils "github.com/esirangelomub/go-chat-application/database"
+	"github.com/esirangelomub/go-chat-application/internal/entity"
+	"github.com/esirangelomub/go-chat-application/internal/infra/repository"
+	"github.com/esirangelomub/go-chat-application/internal/infra/webserver/handlers"
+	"github.com/esirangelomub/go-chat-application/internal/infra/webserver/websockets"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/jwtauth"
+	"net/http"
 )
 
 func main() {
-	dsn := "host=db user=postgres password=password dbname=chatapp port=5493 sslmode=disable TimeZone=Asia/Shanghai"
-	_, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	config, err := configs.LoadConfig(".")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Connected to database!")
-	// Rest of your code...
+	db, err := dbutils.InitializeDB(config)
+	if err != nil {
+		panic(err)
+	}
+	db.AutoMigrate(&entity.User{}, &entity.Chatroom{}, &entity.ChatroomUser{}, &entity.Message{})
+
+	userDB := repository.NewUser(db)
+	userHandler := handlers.NewUserHandler(userDB)
+
+	chatRoomDB := repository.NewChatroom(db)
+	chatRoomHandler := handlers.NewChatRoomHandler(chatRoomDB)
+
+	chatWebsocket := websockets.NewChatWebsocket()
+
+	r := chi.NewRouter()
+
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.WithValue("jwt", config.TokenAuth))
+	r.Use(middleware.WithValue("jwtExpiresIn", config.JwtExpiresIn))
+
+	r.Post("/users", userHandler.CreateUser)
+	r.Post("/users/generate_token", userHandler.GetJWT)
+
+	r.Route("/chats/rooms", func(r chi.Router) {
+		// middleware to verify and authenticate JWT
+		r.Use(jwtauth.Verifier(config.TokenAuth))
+		r.Use(jwtauth.Authenticator)
+		r.Post("/", chatRoomHandler.Create)
+		r.Get("/", chatRoomHandler.List)
+		r.Get("/{id}", chatRoomHandler.Fetch)
+		r.Put("/{id}", chatRoomHandler.Update)
+		r.Delete("/{id}", chatRoomHandler.Delete)
+	})
+
+	r.Get("/ws/{chatroomID}", chatWebsocket.HandleConnections)
+
+	http.ListenAndServe(":8000", r)
 }
