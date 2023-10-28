@@ -8,9 +8,19 @@ type UserInterface interface {
 }
 
 type ChatRoomInterface interface {
-	Create(product *entity.Chatroom) error
+	Create(chatRoom *entity.Chatroom) error
 	FindAll(page, limit int, sort string) ([]*entity.Chatroom, error)
 	FindByID(id string) (*entity.Chatroom, error)
-	Update(product *entity.Chatroom) error
-	Delete(product *entity.Chatroom) error
+	Update(chatRoom *entity.Chatroom) error
+	Delete(chatRoom *entity.Chatroom) error
+}
+
+type ChatRoomUserInterface interface {
+	Create(chatRoomUser *entity.ChatroomUser) error
+	FindByID(id string) (*entity.ChatroomUser, error)
+	Delete(chatRoomUser *entity.ChatroomUser) error
+}
+
+type MessageInterface interface {
+	Create(message *entity.Message) error
 }

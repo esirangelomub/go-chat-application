@@ -30,6 +30,10 @@ func main() {
 	chatRoomDB := repository.NewChatroom(db)
 	chatRoomHandler := handlers.NewChatRoomHandler(chatRoomDB)
 
+	//chatRoomUserDB := repository.NewChatroomUser(db)
+	//messageDB := repository.NewMessage(db)
+	//chatService := service.NewChatService(chatRoomUserDB, messageDB)
+
 	chatWebsocket := websockets.NewChatWebsocket()
 
 	r := chi.NewRouter()
@@ -53,7 +57,11 @@ func main() {
 		r.Delete("/{id}", chatRoomHandler.Delete)
 	})
 
-	r.Get("/ws/{chatroomID}", chatWebsocket.HandleConnections)
+	r.Route("/ws", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(config.TokenAuth))
+		r.Use(jwtauth.Authenticator)
+		r.Get("/{chatroomID}", chatWebsocket.HandleConnections)
+	})
 
 	http.ListenAndServe(":8000", r)
 }

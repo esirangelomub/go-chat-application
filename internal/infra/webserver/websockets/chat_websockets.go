@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"github.com/go-chi/chi"
+	"github.com/go-chi/jwtauth"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -46,7 +47,18 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 	defer ws.Close()
 
 	chatroomID := chi.URLParam(r, "chatroomID")
-	log.Printf("New WebSocket connection established for ChatroomID: %s", chatroomID)
+	if chatroomID == "" {
+		log.Printf("ChatroomID not found")
+		return
+	}
+
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	userID := claims["userID"]
+	if userID == "" {
+		log.Printf("User not found or invalid")
+		return
+	}
+	log.Printf("New WebSocket connection established for ChatroomID: %s, UserID: %s", chatroomID, userID)
 
 	c.Mutex.Lock()
 	if _, ok := c.Chatrooms[chatroomID]; !ok {
@@ -66,8 +78,17 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 			break
 		}
 
-		log.Printf("Received WebSocket message from ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
+		// Populate the Message with UserID and ChatroomID
+		c.Mutex.Lock()
+		msg.UserID = userID.(string)
+		msg.ChatroomID = chatroomID
+		c.Mutex.Unlock()
+
+		log.Printf("Broadcast message from ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
 		c.Broadcast <- msg
+
+		log.Printf("Queueing message for persistence: ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
+
 	}
 }
 
