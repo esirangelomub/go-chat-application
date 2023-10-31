@@ -37,3 +37,7 @@ _testmain.go
 .DS_Store
 *.swp
 *~
+
+# Testing
+test.out
+memory:
