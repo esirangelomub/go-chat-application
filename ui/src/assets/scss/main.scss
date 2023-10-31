@@ -1,0 +1,26 @@
+// Core Definitions
+@import 'utilities/variables';
+@import 'utilities/mixins';
+
+// Base Styles
+@import 'base/reset';
+@import 'base/typography';
+
+// Components
+@import 'components/modals';
+@import 'components/forms';
+// ... other component styles
+
+// Layout
+@import 'layout/sidebar';
+@import 'layout/chat';
+// ... other layout styles
+
+// Pages
+// @import 'homepage';
+// @import 'about';
+// ... other page styles
+
+// Utilities
+// @import 'utilities';
+

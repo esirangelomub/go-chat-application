@@ -1,0 +1,34 @@
+/* ChatPage Container */
+.container {
+  background-color: $color-dark-gray;
+  min-height: 100vh;
+  color: $color-white;
+
+  /* Messages */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    .message-item {
+      padding: 5px;
+      background-color: $color-black;
+
+      p {
+        margin-bottom: 0;
+      }
+    }
+
+    .message-item:nth-child(odd) {
+      background-color: $color-contrast-dark;
+    }
+  }
+
+  /* Prompt */
+  .chat-prompt {
+    padding: 10px;
+    bottom: 0;
+  }
+}
+

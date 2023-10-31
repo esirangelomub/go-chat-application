@@ -25,3 +25,12 @@ func (u *User) FindByEmail(email string) (*entity.User, error) {
 	}
 	return &user, nil
 }
+
+func (u *User) FindByID(id string) (*entity.User, error) {
+	var user entity.User
+	err := u.DB.First(&user, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

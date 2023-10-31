@@ -26,19 +26,6 @@ func NewUserHandler(userDB repository.UserInterface) *UserHandler {
 	}
 }
 
-// GetJWT godoc
-// @Summary      Get a user JWT
-// @Description  Get a user JWT
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Param        request	body	dto.GetJWTInput	true	"user credentials"
-// @Success      200	{object} dto.GetJWTOutput
-// @Failure      400	{object} Error
-// @Failure      401	{object} Error
-// @Failure      404	{object} Error
-// @Failure      500	{object} Error
-// @Router       /users/generate_token [post]
 func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
 	jwtExpiresIn := r.Context().Value("jwtExpiresIn").(int)
@@ -75,17 +62,6 @@ func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(accessToken)
 }
 
-// CreateUser godoc
-// @Summary      Create user
-// @Description  Create user
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Param        request	body	dto.CreateUserInput	true	"user request"
-// @Success      201
-// @Failure      400	{object} Error
-// @Failure      500	{object} Error
-// @Router       /users [post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user dto.CreateUserInput
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -110,4 +86,25 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *UserHandler) Logged(w http.ResponseWriter, r *http.Request) {
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	userID := claims["userID"]
+	if userID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		error := Error{Message: "user is not logged in"}
+		json.NewEncoder(w).Encode(error)
+		return
+	}
+	user, err := h.UserDB.FindByID(userID.(string))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		error := Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(error)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }

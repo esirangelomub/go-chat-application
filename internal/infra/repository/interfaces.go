@@ -5,6 +5,7 @@ import "github.com/esirangelomub/go-chat-application/internal/entity"
 type UserInterface interface {
 	Create(user *entity.User) error
 	FindByEmail(email string) (*entity.User, error)
+	FindByID(id string) (*entity.User, error)
 }
 
 type ChatRoomInterface interface {
@@ -16,7 +17,7 @@ type ChatRoomInterface interface {
 }
 
 type ChatRoomUserInterface interface {
-	Create(chatRoomUser *entity.ChatroomUser) error
+	Create(chatRoomUser *entity.ChatroomUser) (*entity.ChatroomUser, error)
 	FindByID(id string) (*entity.ChatroomUser, error)
 	Delete(chatRoomUser *entity.ChatroomUser) error
 }

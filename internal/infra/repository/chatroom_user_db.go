@@ -13,8 +13,11 @@ func NewChatroomUser(db *gorm.DB) *ChatroomUser {
 	return &ChatroomUser{DB: db}
 }
 
-func (c *ChatroomUser) Create(chatroomUser *entity.ChatroomUser) error {
-	return c.DB.Create(chatroomUser).Error
+func (c *ChatroomUser) Create(chatroomUser *entity.ChatroomUser) (*entity.ChatroomUser, error) {
+	if err := c.DB.Create(chatroomUser).Error; err != nil {
+		return nil, err
+	}
+	return chatroomUser, nil
 }
 
 func (c *ChatroomUser) FindByID(id string) (*entity.ChatroomUser, error) {
