@@ -23,7 +23,13 @@ const ChatPrompt = ({ ws }) => {
                        className="form-control"
                        placeholder="Type a Message"
                        value={message}
-                       onChange={(e) => setMessage(e.target.value)}/>
+                       onChange={(e) => setMessage(e.target.value)}
+                       onKeyPress={(e) => {
+                           if (e.key === 'Enter' && !e.shiftKey) {
+                               e.preventDefault();  // Prevents adding a newline
+                               handleSendMessage();
+                           }
+                       }}/>
                     <button className="btn btn-outline-secondary"
                             type="button"
                             id="button-send"
