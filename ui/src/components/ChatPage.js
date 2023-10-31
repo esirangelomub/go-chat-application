@@ -4,7 +4,7 @@ import ChatMessages from "./ChatMessages";
 import ChatPrompt from "./ChatPrompt";
 
 const ChatPage = () => {
-    const { chatId } = useParams();
+    const { chatName, chatId } = useParams();
     const [messages, setMessages] = useState([]);
     const [ws, setWs] = useState(null);
 
@@ -22,6 +22,7 @@ const ChatPage = () => {
         };
 
         wsInstance.onclose = () => {
+            setMessages([]);
             console.log("Disconnected from the chat");
         };
 
@@ -38,7 +39,7 @@ const ChatPage = () => {
         <div className="container">
             <div className="row justify-content-md-center">
                 <div className="col-md-8">
-                    <h1>Chat Page</h1>
+                    <h1>{chatName}</h1>
                     <ChatMessages messages={messages}/>
                     <ChatPrompt ws={ws}/>
                 </div>

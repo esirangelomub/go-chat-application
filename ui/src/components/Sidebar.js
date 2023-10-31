@@ -55,11 +55,11 @@ const Sidebar = () => {
     };
 
     const handleRegisterSuccess = async() => {
-        console.log('chegou');
+
     }
 
     const handleChatRoomSuccess = async() => {
-        console.log('chegou chat room');
+
     }
 
     const handleSignOut = () => {
@@ -109,9 +109,9 @@ const Sidebar = () => {
                     {userData.isLoggedIn ? (
                         chatRooms.map(room => (
                             <li key={room.id}>
-                                <FontAwesomeIcon icon={faFileText} /> {room.name}
-                                <Link to={`/c/${room.id}`}>
-                                    <button className="btn btn-outline-info ml-2">Open</button>
+                                <Link to={`/c/${room.name}/${room.id}`}>
+                                    <FontAwesomeIcon icon={faFileText} /> {room.name}
+                                    <button className="btn btn-sm btn-outline-secondary ml-2">Open</button>
                                 </Link>
                             </li>
                         ))

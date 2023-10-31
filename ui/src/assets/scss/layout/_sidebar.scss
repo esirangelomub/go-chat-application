@@ -2,7 +2,7 @@
   height: 100vh;
   width: 250px;
   background-color: $color-black;
-  color: $color-black;
+  color: $color-white;
   display: flex;
   flex-direction: column;
 
@@ -30,7 +30,21 @@
         &:hover {
           background-color: darken($color-black, 5%);
         }
+        a {
+          text-decoration: none;
+          font-weight: 600;
+          display: flex;
+          align-items: baseline;
+          justify-content: space-around;
+          color: $color-white;
+        }
       }
     }
+  }
+
+  .sidebar-footer {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
   }
 }

@@ -5,7 +5,7 @@ import ChatPage from "./ChatPage";
 const ChatArea = () => {
     return (
         <Routes>
-            <Route path="/c/:chatId" element={<ChatPage />} />
+            <Route path="/c/:chatName/:chatId" element={<ChatPage />} />
             {/* Add more routes as needed */}
         </Routes>
     );

@@ -11,24 +11,33 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
+    height: 85vh;
     .message-item {
       padding: 5px;
       background-color: $color-black;
 
       p {
         margin-bottom: 0;
+        padding: 20px 0;
       }
     }
 
     .message-item:nth-child(odd) {
       background-color: $color-contrast-dark;
     }
+
+    .message-item.bot-message {
+      background-color: $color-indigo;
+    }
   }
 
   /* Prompt */
   .chat-prompt {
-    padding: 10px;
-    bottom: 0;
+    //padding: 10px 50px 0 80px;
+    //bottom: 0;
+    //left: 210px;
+    //position: fixed;
+    //width: 80%;
   }
 }
 

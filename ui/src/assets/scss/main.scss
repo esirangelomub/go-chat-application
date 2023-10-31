@@ -16,11 +16,6 @@
 @import 'layout/chat';
 // ... other layout styles
 
-// Pages
-// @import 'homepage';
-// @import 'about';
-// ... other page styles
-
-// Utilities
-// @import 'utilities';
-
+#root {
+  background-color: $color-dark-gray;
+}
