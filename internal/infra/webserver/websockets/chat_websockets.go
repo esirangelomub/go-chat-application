@@ -70,6 +70,7 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 	}
 	log.Printf("New WebSocket connection established for ChatroomID: %s, UserID: %s", chatroomID, userID)
 
+	// Lock once and make all necessary changes
 	c.Mutex.Lock()
 	if _, ok := c.Chatrooms[chatroomID]; !ok {
 		c.Chatrooms[chatroomID] = make(map[*websocket.Conn]bool)
@@ -82,43 +83,39 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
-			c.Mutex.Lock()
-			delete(c.Chatrooms[chatroomID], ws)
-			c.Mutex.Unlock()
+			c.removeClientFromChatroom(chatroomID, ws)
 			break
 		}
 
-		c.Mutex.Lock()
 		msg.UserID = userID.(string)
 		msg.ChatroomID = chatroomID
 
 		user, err := c.UserDB.FindByID(userID.(string))
 		if err != nil {
 			log.Printf("error fetching user: %v", err)
-			c.Mutex.Unlock()
 			continue
 		}
 		msg.Username = user.Name
 		msg.Timestamp = time.Now().Unix()
 
-		c.Mutex.Unlock()
-
 		// Check if the message content starts with the stock command prefix
 		if strings.HasPrefix(msg.Content, "/stock=") {
 			log.Printf("Queueing: ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
-			c.Mutex.Lock()
 			go c.HandleStockCommand(msg)
-			c.Mutex.Unlock()
 		} else {
 			log.Printf("Broadcast: ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
 			c.Broadcast <- msg
 
 			log.Printf("Persistence: ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
-			c.Mutex.Lock()
 			go c.PersistMessage(msg)
-			c.Mutex.Unlock()
 		}
 	}
+}
+
+func (c *ChatHandler) removeClientFromChatroom(chatroomID string, ws *websocket.Conn) {
+	c.Mutex.Lock()
+	defer c.Mutex.Unlock()
+	delete(c.Chatrooms[chatroomID], ws)
 }
 
 func (c *ChatHandler) HandleBotMessages(w http.ResponseWriter, r *http.Request) {
@@ -137,21 +134,22 @@ func (c *ChatHandler) HandleMessages() {
 		log.Printf("Handling message for ChatroomID: %s, Content: %s", msg.ChatroomID, msg.Content)
 
 		c.Mutex.Lock()
-		for client := range c.Chatrooms[msg.ChatroomID] {
+		clients := c.Chatrooms[msg.ChatroomID]
+		c.Mutex.Unlock()
+
+		for client := range clients {
 			log.Printf("Sending message to client in ChatroomID: %s", msg.ChatroomID)
 			err := client.WriteJSON(msg)
 			if err != nil {
 				log.Printf("error: %v", err)
 				client.Close()
-				delete(c.Chatrooms[msg.ChatroomID], client)
+				c.removeClientFromChatroom(msg.ChatroomID, client)
 			}
 		}
-		c.Mutex.Unlock()
 	}
 }
 
 func (c *ChatHandler) PersistMessage(msg entityPkg.ChatMessage) {
-	log.Printf("Persisting message for ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
 	chatRoomID, err := entityPkg.ParseID(msg.ChatroomID)
 	if err != nil {
 		log.Printf("error parsing chatroom id: %v", err)
@@ -192,21 +190,9 @@ func (c *ChatHandler) PersistMessage(msg entityPkg.ChatMessage) {
 }
 
 func (c *ChatHandler) HandleStockCommand(msg entityPkg.ChatMessage) {
-	err := rabbitmq.Publish(c.RabbitMQQueueCH, msg, "amq.direct", "bot")
-	if err != nil {
-		log.Printf("error publishing message to rabbitmq: %v", err)
-		return
-	}
+	rabbitmq.Publish(c.RabbitMQQueueCH, msg, "amq.direct", "bot")
 }
 
 func (c *ChatHandler) PostMessageToChatroom(msg entityPkg.ChatMessage) {
-	// Broadcast the message to all WebSocket connections in the chatroom
-	for client := range c.Chatrooms[msg.ChatroomID] {
-		err := client.WriteJSON(msg)
-		if err != nil {
-			log.Printf("error: %v", err)
-			client.Close()
-			delete(c.Chatrooms[msg.ChatroomID], client)
-		}
-	}
+	c.Broadcast <- msg
 }
