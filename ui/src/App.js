@@ -36,6 +36,7 @@ function App() {
                             token: token,
                             email: data.email
                         });
+                        console.log(user);
                     } else {
                         console.error('Failed to generate token');
                         setUserData({

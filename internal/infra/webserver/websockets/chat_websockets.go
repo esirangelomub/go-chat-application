@@ -23,13 +23,11 @@ type ChatHandler struct {
 	Mutex           sync.Mutex
 	Chatrooms       map[string]map[*websocket.Conn]bool
 	UserDB          repository.UserInterface
-	ChatroomUserDB  repository.ChatRoomUserInterface
 	MessageDB       repository.MessageInterface
 	RabbitMQQueueCH *amqp.Channel
 }
 
-func NewChatWebsocket(userDB repository.UserInterface, chatroomUserDB repository.ChatRoomUserInterface,
-	messageDB repository.MessageInterface, rabbitMQQueueCH *amqp.Channel) *ChatHandler {
+func NewChatWebsocket(userDB repository.UserInterface, messageDB repository.MessageInterface, rabbitMQQueueCH *amqp.Channel) *ChatHandler {
 	ch := &ChatHandler{
 		Upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
@@ -39,7 +37,6 @@ func NewChatWebsocket(userDB repository.UserInterface, chatroomUserDB repository
 		Broadcast:       make(chan entityPkg.ChatMessage),
 		Chatrooms:       make(map[string]map[*websocket.Conn]bool),
 		UserDB:          userDB,
-		ChatroomUserDB:  chatroomUserDB,
 		MessageDB:       messageDB,
 		RabbitMQQueueCH: rabbitMQQueueCH,
 	}
@@ -70,6 +67,8 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 	}
 	log.Printf("New WebSocket connection established for ChatroomID: %s, UserID: %s", chatroomID, userID)
 
+	c.loadMessagesDB(chatroomID, ws)
+
 	// Lock once and make all necessary changes
 	c.Mutex.Lock()
 	if _, ok := c.Chatrooms[chatroomID]; !ok {
@@ -98,8 +97,16 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 		msg.Username = user.Name
 		msg.Timestamp = time.Now().Unix()
 
-		// Check if the message content starts with the stock command prefix
 		if strings.HasPrefix(msg.Content, "/stock=") {
+			msg.Content = strings.TrimPrefix(msg.Content, "/stock=")
+
+			// Get bot user
+			botUser, err := c.UserDB.FindByEmail("bot@example.com")
+			if err != nil {
+				log.Printf("error fetching bot user: %v", err)
+				continue
+			}
+			msg.UserID = botUser.ID.String()
 			log.Printf("Queueing: ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
 			go c.HandleStockCommand(msg)
 		} else {
@@ -107,7 +114,7 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 			c.Broadcast <- msg
 
 			log.Printf("Persistence: ChatroomID: %s, UserID: %s, Content: %s", msg.ChatroomID, msg.UserID, msg.Content)
-			go c.PersistMessage(msg)
+			go c.storeMessageDB(msg)
 		}
 	}
 }
@@ -125,7 +132,9 @@ func (c *ChatHandler) HandleBotMessages(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-	c.PostMessageToChatroom(msg)
+
+	go c.PostMessageToChatroom(msg)
+	go c.storeMessageDB(msg)
 }
 
 func (c *ChatHandler) HandleMessages() {
@@ -149,7 +158,29 @@ func (c *ChatHandler) HandleMessages() {
 	}
 }
 
-func (c *ChatHandler) PersistMessage(msg entityPkg.ChatMessage) {
+func (c *ChatHandler) loadMessagesDB(chatroomID string, ws *websocket.Conn) {
+	page := 0
+	limit := 50
+	sort := "desc"
+	messages, _ := c.MessageDB.FindAllByChatRoomID(chatroomID, page, limit, sort)
+
+	for _, msg := range messages {
+		chatMsg := entityPkg.ChatMessage{
+			ChatroomID: msg.ChatroomID.String(),
+			UserID:     msg.UserID.String(),
+			Content:    msg.Content,
+			Username:   msg.User.Name,
+			Timestamp:  msg.Timestamp,
+		}
+
+		if err := ws.WriteJSON(chatMsg); err != nil {
+			log.Printf("Error sending message: %v", err)
+			break
+		}
+	}
+}
+
+func (c *ChatHandler) storeMessageDB(msg entityPkg.ChatMessage) {
 	chatRoomID, err := entityPkg.ParseID(msg.ChatroomID)
 	if err != nil {
 		log.Printf("error parsing chatroom id: %v", err)
@@ -162,29 +193,16 @@ func (c *ChatHandler) PersistMessage(msg entityPkg.ChatMessage) {
 		return
 	}
 
-	chu, err := entity.NewChatroomUser(chatRoomID, userID)
-	if err != nil {
-		log.Printf("error creating chatroom user: %v", err)
-		return
-	}
-
-	chatRoomUser, err := c.ChatroomUserDB.Create(chu)
-	if err != nil {
-		log.Printf("error creating chatroom user: %v", err)
-		return
-	}
-
-	m, err := entity.NewMessage(chatRoomUser.ID, msg.Content)
+	m, err := entity.NewMessage(chatRoomID, userID, msg.Content)
 	if err != nil {
 		log.Printf("error creating message: %v", err)
 		return
 	}
 
 	err = c.MessageDB.Create(m)
+	log.Printf("message created: %v", m)
 	if err != nil {
-		if delErr := c.ChatroomUserDB.Delete(chatRoomUser); delErr != nil {
-			log.Printf("Failed to delete chatUser after message creation error: %v", delErr)
-		}
+		log.Printf("error persist message: %v", err)
 		return
 	}
 }

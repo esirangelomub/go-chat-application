@@ -16,12 +16,7 @@ type ChatRoomInterface interface {
 	Delete(chatRoom *entity.Chatroom) error
 }
 
-type ChatRoomUserInterface interface {
-	Create(chatRoomUser *entity.ChatroomUser) (*entity.ChatroomUser, error)
-	FindByID(id string) (*entity.ChatroomUser, error)
-	Delete(chatRoomUser *entity.ChatroomUser) error
-}
-
 type MessageInterface interface {
 	Create(message *entity.Message) error
+	FindAllByChatRoomID(chatRoomId string, page, limit int, sort string) ([]*entity.Message, error)
 }
