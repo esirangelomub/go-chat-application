@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import {Link} from 'react-router-dom';
+import {Link, redirect} from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt, faFileText } from '@fortawesome/free-solid-svg-icons';
 import UserContext from "../contexts/UserContext";
@@ -56,11 +56,12 @@ const Sidebar = () => {
     };
 
     const handleRegisterSuccess = async() => {
-
+        return redirect("/");
     }
 
     const handleChatRoomSuccess = async() => {
-
+        console.log('Chat room created')
+        return redirect("/");
     }
 
     const handleSignOut = () => {
@@ -127,7 +128,7 @@ const Sidebar = () => {
             <div className="sidebar-footer">
                 {userData.isLoggedIn ? (
                     <>
-                        <p className="text-truncate" style={{ width: '85%' }}>{userData.email}</p>
+                        <p className="text-truncate" style={{ width: '70%' }} title={userData.email}>{userData.email}</p>
                         <button className="btn btn-outline-secondary" onClick={handleSignOut}>
                             <FontAwesomeIcon icon={faSignOutAlt} />
                         </button>
