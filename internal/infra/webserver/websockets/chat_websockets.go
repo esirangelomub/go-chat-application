@@ -133,6 +133,8 @@ func (c *ChatHandler) HandleBotMessages(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	msg.CreatedAt = time.Now()
+
 	go c.PostMessageToChatroom(msg)
 	go c.storeMessageDB(msg)
 }
