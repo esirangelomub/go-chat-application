@@ -18,7 +18,7 @@ func TestMessageRepository(t *testing.T) {
 	db.AutoMigrate(&entity.Message{})
 
 	// Create a new Message
-	message, _ := entity.NewMessage(entityPkg.NewID(), "Hello World!")
+	message, _ := entity.NewMessage(entityPkg.NewID(), entityPkg.NewID(), "Hello World!")
 	messageDB := NewMessage(db)
 
 	// Test Create method
@@ -30,7 +30,8 @@ func TestMessageRepository(t *testing.T) {
 	err = db.First(&createdMessage, "id = ?", message.ID).Error
 	assert.Nil(t, err)
 	assert.Equal(t, message.ID, createdMessage.ID)
-	assert.Equal(t, message.ChatroomUserID, createdMessage.ChatroomUserID)
+	assert.Equal(t, message.ChatroomID, createdMessage.ChatroomID)
+	assert.Equal(t, message.UserID, createdMessage.UserID)
 	assert.Equal(t, message.Content, createdMessage.Content)
 
 	// Cleanup

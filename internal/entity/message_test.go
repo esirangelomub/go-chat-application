@@ -8,26 +8,30 @@ import (
 )
 
 func TestNewMessage(t *testing.T) {
-	chatroomUserID := entity.NewID()
+	chatRoomID := entity.NewID()
+	userID := entity.NewID()
 
 	// Test case 1: Valid message
-	message, err := NewMessage(chatroomUserID, "Hello, World!")
+	message, err := NewMessage(chatRoomID, userID, "Hello, World!")
 	assert.Nil(t, err)
 	assert.NotNil(t, message)
 	assert.NotEmpty(t, message.ID)
-	assert.Equal(t, chatroomUserID, message.ChatroomUserID)
+	assert.Equal(t, chatRoomID, message.ChatroomID)
+	assert.Equal(t, userID, message.UserID)
 	assert.Equal(t, "Hello, World!", message.Content)
-	assert.NotZero(t, message.Timestamp)
+	assert.NotNil(t, message.CreatedAt)
 }
 
 func TestMessage_Validate(t *testing.T) {
-	chatroomUserID := entity.NewID()
+	chatRoomID := entity.NewID()
+	userID := entity.NewID()
 
 	// Test case 1: Valid message
 	message := &Message{
-		ID:             entity.NewID(),
-		ChatroomUserID: chatroomUserID,
-		Content:        "Hello, World!",
+		ID:         entity.NewID(),
+		ChatroomID: chatRoomID,
+		UserID:     userID,
+		Content:    "Hello, World!",
 	}
 	err := message.Validate()
 	assert.Nil(t, err)

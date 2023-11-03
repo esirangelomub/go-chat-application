@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httprate"
 	"github.com/go-chi/jwtauth"
+	"log"
 	"net/http"
 	"time"
 )
@@ -29,7 +30,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&entity.User{}, &entity.Chatroom{}, &entity.ChatroomUser{}, &entity.Message{})
+	db.AutoMigrate(&entity.User{}, &entity.Chatroom{}, &entity.Message{})
 
 	// rabbitmq connection
 	rabbitMQConn, rabbitMQCH := rabbitmq.SetupRabbitMQ(config)
@@ -42,10 +43,11 @@ func main() {
 	chatRoomDB := repository.NewChatroom(db)
 	chatRoomHandler := handlers.NewChatRoomHandler(chatRoomDB)
 
-	chatRoomUserDB := repository.NewChatroomUser(db)
 	messageDB := repository.NewMessage(db)
 
-	chatWebsocket := websockets.NewChatWebsocket(userDB, chatRoomUserDB, messageDB, rabbitMQCH)
+	chatWebsocket := websockets.NewChatWebsocket(userDB, messageDB, rabbitMQCH)
+
+	ensureBotUser(userDB)
 
 	r := chi.NewRouter()
 
@@ -79,4 +81,28 @@ func main() {
 	})
 
 	http.ListenAndServe(":8000", r)
+}
+
+func ensureBotUser(userDB repository.UserInterface) {
+	const botEmail = "bot@example.com"
+	const botName = "Bot"
+	const botPassword = "securebotpassword"
+
+	botUser, err := entity.NewUser(botName, botEmail, botPassword, entity.BOT)
+	if err != nil {
+		log.Printf("Error creating bot user: %v", err)
+		return
+	}
+	_, err = userDB.FindByEmail(botEmail)
+	if err == nil {
+		log.Printf("Bot user already exists")
+		return
+	}
+
+	err = userDB.Create(botUser)
+	if err != nil {
+		log.Printf("Error creating bot user: %v", err)
+		return
+	}
+	log.Printf("Bot user created successfully: %s", botUser.ID)
 }

@@ -41,6 +41,7 @@ const ChatPage = () => {
                 <div className="col-md-8">
                     <h1>{chatName}</h1>
                     <ChatMessages messages={messages}/>
+                    <div className="message-count">Messages: {messages.length}</div>
                     <ChatPrompt ws={ws}/>
                 </div>
             </div>

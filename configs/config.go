@@ -24,7 +24,6 @@ type Conf struct {
 	RabbitMQExchange       string `mapstructure:"RABBITMQ_EXCHANGE"`
 	SecretKey              string
 	TokenAuth              *jwtauth.JWTAuth
-	BotUserID              string `mapstructure:"BOT_USER_ID"`
 	BotURL                 string `mapstructure:"BOT_URL"`
 }
 

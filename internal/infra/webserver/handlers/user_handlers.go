@@ -71,7 +71,8 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(error)
 		return
 	}
-	p, err := entity.NewUser(user.Name, user.Email, user.Password)
+
+	p, err := entity.NewUser(user.Name, user.Email, user.Password, entity.USER)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		error := Error{Message: err.Error()}

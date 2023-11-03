@@ -8,6 +8,7 @@ import (
 	"github.com/esirangelomub/go-chat-application/configs"
 	dbutils "github.com/esirangelomub/go-chat-application/database"
 	"github.com/esirangelomub/go-chat-application/internal/entity"
+	"github.com/esirangelomub/go-chat-application/internal/infra/repository"
 	entityPkg "github.com/esirangelomub/go-chat-application/pkg/models/entity"
 	"github.com/esirangelomub/go-chat-application/pkg/services/rabbitmq"
 	"github.com/go-chi/jwtauth"
@@ -35,7 +36,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&entity.User{}, &entity.Chatroom{}, &entity.ChatroomUser{}, &entity.Message{})
+	db.AutoMigrate(&entity.User{}, &entity.Chatroom{}, &entity.Message{})
+
+	userDB := repository.NewUser(db)
 
 	rabbitMQConn, rabbitMQCH := rabbitmq.SetupRabbitMQ(config)
 	defer rabbitMQConn.Close()
@@ -59,7 +62,7 @@ func main() {
 	go func() {
 		for msg := range wsMsgs {
 			log.Printf("Received message from: %s: %v", config.RabbitMQQueueWebSocket, string(msg.Body))
-			sendMessageToChatroom(msg, config)
+			sendMessageToChatroom(msg, config, userDB)
 		}
 	}()
 
@@ -85,7 +88,7 @@ func handleStockMessage(msg amqp.Delivery, ch *amqp.Channel) {
 
 	parsedMsg.Content = messageContent
 	parsedMsg.Username = "Bot"
-	parsedMsg.Timestamp = time.Now().Unix()
+	parsedMsg.CreatedAt = time.Now()
 
 	// Publish the message to RabbitMQ
 	err = rabbitmq.Publish(ch, parsedMsg, "amq.direct", "websocket")
@@ -99,12 +102,14 @@ func handleStockMessage(msg amqp.Delivery, ch *amqp.Channel) {
 
 func fetchStockData(stockCode string) (string, error) {
 	resp, err := http.Get(fmt.Sprintf(StoOqURLTemplate, stockCode))
+	log.Printf("url %s", fmt.Sprintf(StoOqURLTemplate, stockCode))
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
+	log.Printf("Response body: %s", string(body))
 	r := csv.NewReader(strings.NewReader(string(body)))
 	records, err := r.ReadAll()
 	if err != nil || len(records) < 2 {
@@ -118,7 +123,7 @@ func fetchStockData(stockCode string) (string, error) {
 	return fmt.Sprintf("%s quote is $%s per share", symbol, closePrice), nil
 }
 
-func sendMessageToChatroom(msg amqp.Delivery, config *configs.Conf) {
+func sendMessageToChatroom(msg amqp.Delivery, config *configs.Conf, userDB repository.UserInterface) {
 	var message entityPkg.ChatMessage
 	err := json.Unmarshal(msg.Body, &message)
 	if err != nil {
@@ -132,10 +137,17 @@ func sendMessageToChatroom(msg amqp.Delivery, config *configs.Conf) {
 		log.Fatalf("Failed to serialize message: %v", err)
 	}
 
+	// Get bot user
+	botUser, err := userDB.FindByEmail("bot@example.com")
+	if err != nil {
+		log.Printf("error fetching bot user: %v", err)
+		return
+	}
+
 	jwt := tokenAuth
 	jwtExpiresIn := config.JwtExpiresIn
 	_, token, _ := jwt.Encode(map[string]interface{}{
-		"userID": config.BotUserID,
+		"userID": botUser.ID.String(),
 		"exp":    time.Now().Add(time.Second * time.Duration(jwtExpiresIn)).Unix(),
 	})
 

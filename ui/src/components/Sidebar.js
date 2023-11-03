@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt, faFileText } from '@fortawesome/free-solid-svg-icons';
 import UserContext from "../contexts/UserContext";
@@ -42,6 +42,7 @@ const Sidebar = () => {
                 setUserData({
                     isLoggedIn: true,
                     access_token: token,
+                    user_id: data.id,
                     email: data.email
                 });
                 setShowLogin(false);
@@ -66,6 +67,7 @@ const Sidebar = () => {
         setUserData({
             isLoggedIn: false,
             access_token: null,
+            user_id: null,
             email: null
         });
     };
