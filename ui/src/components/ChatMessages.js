@@ -1,8 +1,9 @@
-import React, {useContext} from "react";
+import React, {useContext, useEffect, useRef} from "react";
 import UserContext from "../contexts/UserContext";
 
 const ChatMessages = ({ messages }) => {
     const { userData } = useContext(UserContext);
+    const messagesEndRef = useRef(null);
 
     const getClassName = (msg) => {
         if (msg.username === 'Bot') {
@@ -56,6 +57,12 @@ const ChatMessages = ({ messages }) => {
         return formattedDate;
     }
 
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(scrollToBottom, [messages]);
+
     return (
         <div className="chat-messages">
             {messages.map((msg, index) => (
@@ -65,6 +72,7 @@ const ChatMessages = ({ messages }) => {
                     <small>{formatDate(msg.created_at)}</small>
                 </div>
             ))}
+            <div ref={messagesEndRef}></div>
         </div>
     );
 }

@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import './App.css';
 import UserContext from './contexts/UserContext';
 import Sidebar from './components/Sidebar';
-import ChatArea from './components/ChatArea';
+import ChatPage from "./components/ChatPage";
 
 function App() {
     const [user, setUser] = useState({
@@ -73,7 +73,10 @@ function App() {
             <UserContext.Provider value={{userData: user, setUserData}}>
                 <div className="d-flex">
                     <Sidebar/>
-                    <ChatArea/>
+                    <Routes>
+                        <Route path="/c/:chatName/:chatId" element={<ChatPage />} />
+                        {/* Add more routes as needed */}
+                    </Routes>
                 </div>
             </UserContext.Provider>
         </Router>
