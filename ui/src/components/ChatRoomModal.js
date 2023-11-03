@@ -1,9 +1,11 @@
 import React, {useState} from 'react';
-import {Button, Form, Modal} from 'react-bootstrap';
+import {Alert, Button, Form, Modal} from 'react-bootstrap';
 
 const ChatRoomModal = ({show, handleClose, onSuccess}) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertVariant, setAlertVariant] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,11 +27,17 @@ const ChatRoomModal = ({show, handleClose, onSuccess}) => {
                 if (response.ok) {
                     onSuccess();
                     handleClose();
+                    setAlertMessage('Chat Room created successful!');
+                    setAlertVariant('success');
                 } else {
-                    console.error('Failed to generate token')
+                    console.error('Failed to create chat room')
+                    setAlertMessage('Register failed!');
+                    setAlertVariant('danger');
                 }
             } catch (error) {
                 console.error(error);
+                setAlertMessage('An error occurred. Please try again.');
+                setAlertVariant('danger');
             }
         }
     };
@@ -41,6 +49,7 @@ const ChatRoomModal = ({show, handleClose, onSuccess}) => {
             </Modal.Header>
             <Form onSubmit={handleSubmit}>
                 <Modal.Body>
+                    {alertMessage && <Alert variant={alertVariant}>{alertMessage}</Alert>}
                     <Form.Group controlId="formName">
                         <Form.Label>Name</Form.Label>
                         <Form.Control type="text" placeholder="Enter name" value={name}

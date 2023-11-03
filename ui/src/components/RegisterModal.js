@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
-import {Button, Form, Modal} from 'react-bootstrap';
+import {Alert, Button, Form, Modal} from 'react-bootstrap';
 
 const RegisterModal = ({show, handleClose, onSuccess}) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertVariant, setAlertVariant] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,11 +26,17 @@ const RegisterModal = ({show, handleClose, onSuccess}) => {
             if (response.ok) {
                 onSuccess();
                 handleClose();
+                setAlertMessage('User Register successful!');
+                setAlertVariant('success');
             } else {
-                console.error('Failed to generate token')
+                console.error('Failed to create chat room')
+                setAlertMessage('Register failed!');
+                setAlertVariant('danger');
             }
         } catch (error) {
             console.error(error);
+            setAlertMessage('An error occurred. Please try again.');
+            setAlertVariant('danger');
         }
     };
 
@@ -39,6 +47,7 @@ const RegisterModal = ({show, handleClose, onSuccess}) => {
             </Modal.Header>
             <Form onSubmit={handleSubmit}>
                 <Modal.Body>
+                    {alertMessage && <Alert variant={alertVariant}>{alertMessage}</Alert>}
                     <Form.Group controlId="formName">
                         <Form.Label>Name</Form.Label>
                         <Form.Control type="text" placeholder="Enter name" value={name}

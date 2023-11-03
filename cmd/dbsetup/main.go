@@ -6,6 +6,7 @@ import (
 	"github.com/esirangelomub/go-chat-application/configs"
 	dbutils "github.com/esirangelomub/go-chat-application/database"
 	"github.com/esirangelomub/go-chat-application/internal/entity"
+	"golang.org/x/crypto/bcrypt"
 	"os"
 )
 
@@ -51,7 +52,10 @@ func main() {
 	fmt.Println("Database truncated successfully.")
 
 	fmt.Println("Create users and chatroom's...")
-	err = db.Exec("INSERT INTO public.users (id, name, email, password, type)\nVALUES\n    ('1bc8c7b5-4047-49e8-9ac6-f36a49510f2d', 'User1', 'user1@example.com', 'password1', 'USER'),\n    ('8b95244a-94e0-4097-adca-5d7b21ceb5d0', 'User2', 'user2@example.com', 'password2', 'USER'),\n    ('9ac7b8d0-5e2a-4f7b-8f6a-1e4f2c9a1b2e', 'User3', 'user3@example.com', 'password3', 'USER');\nINSERT INTO public.chatrooms (id, name, description, created_at)\nVALUES\n    ('bee6104c-bc5c-4837-87b5-9ce56c601ff0', 'Chatroom1', 'Description1', NOW()),\n    ('e4eaa663-bd7e-4a6a-97f7-cf8e6e7f8eb5', 'Chatroom2', 'Description2', NOW());").Error
+	password := "123"
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	err = db.Exec("INSERT INTO public.users (id, name, email, password, type)\nVALUES\n    ('1bc8c7b5-4047-49e8-9ac6-f36a49510f2d', 'User1', 'user1@example.com', ?, 'USER'),\n    ('8b95244a-94e0-4097-adca-5d7b21ceb5d0', 'User2', 'user2@example.com', ?, 'USER'),\n    ('9ac7b8d0-5e2a-4f7b-8f6a-1e4f2c9a1b2e', 'User3', 'user3@example.com', ?, 'USER');", hash, hash, hash).Error
+	err = db.Exec("INSERT INTO public.chatrooms (id, name, description, created_at)\nVALUES\n    ('bee6104c-bc5c-4837-87b5-9ce56c601ff0', 'Chatroom1', 'Description1', NOW()),\n    ('e4eaa663-bd7e-4a6a-97f7-cf8e6e7f8eb5', 'Chatroom2', 'Description2', NOW());").Error
 	if err != nil {
 		fmt.Println("Error creating users and chatroom's.")
 		panic(err)

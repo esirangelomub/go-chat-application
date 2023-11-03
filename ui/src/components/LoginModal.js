@@ -1,9 +1,11 @@
 import React, {useState} from 'react';
-import {Button, Form, Modal} from 'react-bootstrap';
+import {Button, Form, Modal, Alert} from 'react-bootstrap';
 
 const LoginModal = ({show, handleClose, onSuccess}) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertVariant, setAlertVariant] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,11 +26,17 @@ const LoginModal = ({show, handleClose, onSuccess}) => {
                 localStorage.setItem('token', data.access_token);
                 onSuccess();
                 handleClose();
+                setAlertMessage('Login successful!');
+                setAlertVariant('success');
             } else {
-                console.error('Failed to generate token')
+                console.error('Failed to generate token');
+                setAlertMessage('Login failed. Please check your credentials.');
+                setAlertVariant('danger');
             }
         } catch (error) {
             console.error(error);
+            setAlertMessage('An error occurred. Please try again.');
+            setAlertVariant('danger');
         }
     };
 
@@ -39,6 +47,7 @@ const LoginModal = ({show, handleClose, onSuccess}) => {
             </Modal.Header>
             <Form onSubmit={handleSubmit}>
                 <Modal.Body>
+                    {alertMessage && <Alert variant={alertVariant}>{alertMessage}</Alert>}
                     <Form.Group controlId="formEmail">
                         <Form.Label>Username</Form.Label>
                         <Form.Control type="text" placeholder="Enter email" value={email}
