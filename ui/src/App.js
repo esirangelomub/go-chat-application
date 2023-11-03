@@ -34,14 +34,15 @@ function App() {
                         setUserData({
                             isLoggedIn: true,
                             token: token,
+                            user_id: data.id,
                             email: data.email
                         });
-                        console.log(user);
                     } else {
                         console.error('Failed to generate token');
                         setUserData({
                             isLoggedIn: false,
                             access_token: null,
+                            user_id: null,
                             email: null
                         });
                     }
@@ -50,6 +51,7 @@ function App() {
                     setUserData({
                         isLoggedIn: false,
                         access_token: null,
+                        user_id: null,
                         email: null
                     });
                 }
@@ -57,6 +59,7 @@ function App() {
                 setUserData({
                     isLoggedIn: false,
                     access_token: null,
+                    user_id: null,
                     email: null
                 });
                 localStorage.removeItem('token')

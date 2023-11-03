@@ -19,7 +19,7 @@ func TestNewMessage(t *testing.T) {
 	assert.Equal(t, chatRoomID, message.ChatroomID)
 	assert.Equal(t, userID, message.UserID)
 	assert.Equal(t, "Hello, World!", message.Content)
-	assert.NotZero(t, message.Timestamp)
+	assert.NotNil(t, message.CreatedAt)
 }
 
 func TestMessage_Validate(t *testing.T) {

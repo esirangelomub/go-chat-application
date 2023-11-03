@@ -20,7 +20,7 @@ type Message struct {
 	UserID     entity.ID `json:"user_id"`
 	User       User      `json:"user"`
 	Content    string    `json:"content"`
-	Timestamp  int64     `json:"timestamp"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 func NewMessage(chatroomID entity.ID, userID entity.ID, content string) (*Message, error) {
@@ -29,7 +29,7 @@ func NewMessage(chatroomID entity.ID, userID entity.ID, content string) (*Messag
 		ChatroomID: chatroomID,
 		UserID:     userID,
 		Content:    content,
-		Timestamp:  time.Now().Unix(),
+		CreatedAt:  time.Now(),
 	}
 
 	return m, nil

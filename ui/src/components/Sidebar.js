@@ -42,6 +42,7 @@ const Sidebar = () => {
                 setUserData({
                     isLoggedIn: true,
                     access_token: token,
+                    user_id: data.id,
                     email: data.email
                 });
                 setShowLogin(false);
@@ -66,6 +67,7 @@ const Sidebar = () => {
         setUserData({
             isLoggedIn: false,
             access_token: null,
+            user_id: null,
             email: null
         });
     };

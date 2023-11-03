@@ -27,9 +27,9 @@ func (c *Message) FindAllByChatRoomID(chatRoomId string, page, limit int, sort s
 	}
 
 	if page != 0 && limit != 0 {
-		err = c.DB.Limit(limit).Offset((page-1)*limit).Order("timestamp "+sort).Preload("User").Find(&messages, "chatroom_id = ?", chatRoomId).Error
+		err = c.DB.Limit(limit).Offset((page-1)*limit).Order("created_at "+sort).Preload("User").Find(&messages, "chatroom_id = ?", chatRoomId).Error
 	} else {
-		err = c.DB.Order("timestamp "+sort).Preload("User").Find(&messages, "chatroom_id = ?", chatRoomId).Error
+		err = c.DB.Order("created_at "+sort).Preload("User").Find(&messages, "chatroom_id = ?", chatRoomId).Error
 	}
 	log.Printf("chatRoomUserId: %v: page: %v: limit: %v: sort: %v", chatRoomId, page, limit, sort)
 	return messages, err

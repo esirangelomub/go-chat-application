@@ -25,7 +25,7 @@ This project is a real-time chat application that allows users to communicate in
       docker-compose up --build -d  
       ```
 
-3. Instal backend dependencies
+3. Install backend dependencies
    ```sh
    go mod download
    ```
@@ -48,8 +48,15 @@ This project is a real-time chat application that allows users to communicate in
    cd frontend
    yarn install
    ```
-   
-5. Run the application
+5. Setup the database
+    ```sh
+   cd cmd/dbsetup
+   go run main.go
+   ```
+
+Note: This action will delete all records in the relational database. 
+
+6. Run the application
     Backend server
    ```sh
    cd cmd/server
@@ -61,7 +68,7 @@ This project is a real-time chat application that allows users to communicate in
     go run main.go
     ```
     Frontend
-6. Run the application
+7. Run the application
     ```sh
    cd frontend
    npm start
@@ -81,6 +88,12 @@ This project is a real-time chat application that allows users to communicate in
 5. To test the bot, send a message with the following format: /stock=stock_code
 
 Note: You'll need to open two different browsers (e.g. Chrome and Firefox)
+
+## Testing
+
+```sh
+go test ./...
+```
 
 ## Contact
 

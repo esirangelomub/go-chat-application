@@ -1,12 +1,14 @@
 // Colors
-$color-black: #000;
+$color-black: rgba(0, 0, 0, 0.8);
+$color-light-black: rgba(0, 0, 0, 0.6);
 $color-dark-gray: #333;
 $color-contrast-dark: #555;
 $color-gray: #666;
 $color-light-gray: #999;
 $color-off-white: #f5f5f5;
 $color-white: #fff;
-$color-indigo: #6610f2;
+$color-indigo: rgba(102, 15, 242,0.6);
+$color-dark-green: rgba(9,112,30,0.6);
 
 // Typography
 $font-family-base: "Arial", sans-serif; // Example font, you can choose any other preferred font.

@@ -95,7 +95,7 @@ func (c *ChatHandler) HandleConnections(w http.ResponseWriter, r *http.Request) 
 			continue
 		}
 		msg.Username = user.Name
-		msg.Timestamp = time.Now().Unix()
+		msg.CreatedAt = time.Now()
 
 		if strings.HasPrefix(msg.Content, "/stock=") {
 			msg.Content = strings.TrimPrefix(msg.Content, "/stock=")
@@ -159,18 +159,18 @@ func (c *ChatHandler) HandleMessages() {
 }
 
 func (c *ChatHandler) loadMessagesDB(chatroomID string, ws *websocket.Conn) {
-	page := 0
+	page := 1
 	limit := 50
-	sort := "desc"
+	sort := "asc"
 	messages, _ := c.MessageDB.FindAllByChatRoomID(chatroomID, page, limit, sort)
-
+	log.Printf("Loading %d messages from DB", len(messages))
 	for _, msg := range messages {
 		chatMsg := entityPkg.ChatMessage{
 			ChatroomID: msg.ChatroomID.String(),
 			UserID:     msg.UserID.String(),
 			Content:    msg.Content,
 			Username:   msg.User.Name,
-			Timestamp:  msg.Timestamp,
+			CreatedAt:  msg.CreatedAt,
 		}
 
 		if err := ws.WriteJSON(chatMsg); err != nil {

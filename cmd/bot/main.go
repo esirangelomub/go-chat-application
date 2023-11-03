@@ -88,7 +88,7 @@ func handleStockMessage(msg amqp.Delivery, ch *amqp.Channel) {
 
 	parsedMsg.Content = messageContent
 	parsedMsg.Username = "Bot"
-	parsedMsg.Timestamp = time.Now().Unix()
+	parsedMsg.CreatedAt = time.Now()
 
 	// Publish the message to RabbitMQ
 	err = rabbitmq.Publish(ch, parsedMsg, "amq.direct", "websocket")
