@@ -60,7 +60,6 @@ const Sidebar = () => {
     }
 
     const handleChatRoomSuccess = async() => {
-        console.log('Chat room created')
         return redirect("/");
     }
 
